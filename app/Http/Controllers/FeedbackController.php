@@ -11,23 +11,30 @@ use App\Models\Feedback;
 
 class FeedbackController extends Controller
 {
-    public function create(Request $request) {
-        $request->validate([
-            "data" => "required|string|max:9999",
-        ]);
-        
-        // SAVE DATA TO FEEDBACK TABLE
-        $user = Auth::user();
+    public function create(Request $request)
+    {
+        try {
+            $request->validate([
+                "data" => "required|string|max:9999",
+            ]);
 
-        $username = $user->username;
+            // SAVE DATA TO FEEDBACK TABLE
+            $user = Auth::user();
 
-        Feedback::create([
-            "username" => $username,
-            "data" => $request->data
-        ]);
+            $username = $user->username;
 
-        return response()->json([
-            "message" => "Feedback saved successfully."
-        ], 200);
+            Feedback::create([
+                "username" => $username,
+                "data" => $request->data
+            ]);
+
+            return response()->json([
+                "message" => "Feedback saved successfully."
+            ], 201);
+        } catch (\Exception $e) {
+            return response()->json([
+                "message" => "An error occurred while saving feedback: " . $e->getMessage()
+            ], 500);
+        }
     }
 }
