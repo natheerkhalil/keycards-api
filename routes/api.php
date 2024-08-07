@@ -28,7 +28,7 @@ Route::middleware('throttle: 200,1')->group(function () {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::middleware('throttle:1,1')->group(function () {
+    Route::middleware('throttle:70,1')->group(function () {
         // videos
         Route::post('/video/save', [VideoController::class, 'save']);
         Route::post('/video/fetch', [VideoController::class, 'fetch']);
