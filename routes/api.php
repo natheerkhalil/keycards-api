@@ -15,19 +15,15 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
 
 Route::middleware('throttle:30,1')->group(function () {
     // authorisation
-    Route::post('/register', [AuthController::class, 'register']);
     Route::post('/login', [AuthController::class, 'login']);
 });
 
 Route::middleware('throttle:200,1')->group(function () {
-    Route::post('/validation/login', [AuthController::class, 'validateLogin']);
     Route::post('/validation/register', [AuthController::class, 'validateRegister']);
-
-    // lyrics
-    Route::post('/video/lyrics', [VideoController::class, 'lyrics']);
+    Route::post('/register', [AuthController::class, 'register']);
 });
 
-Route::group(["middleware" => ["auth:sanctum", "throttle:5,1"]], function () {
+Route::group(["middleware" => ["auth:sanctum", "throttle:70,1"]], function () {
     // videos
     Route::post('/video/save', [VideoController::class, 'save']);
     Route::post('/video/fetch', [VideoController::class, 'fetch']);
@@ -38,6 +34,8 @@ Route::group(["middleware" => ["auth:sanctum", "throttle:5,1"]], function () {
     Route::post('/video/delete', [VideoController::class, 'delete']);
     Route::post('/video/random', [VideoController::class, 'random']);
     Route::post('/video/playlist', [VideoController::class, 'playlist']);
+    // lyrics
+    Route::post('/video/lyrics', [VideoController::class, 'lyrics']);
 
     // playlist
     Route::post('/playlist/create', [PlaylistController::class, 'create']);
