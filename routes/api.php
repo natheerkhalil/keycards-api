@@ -13,17 +13,21 @@ Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// authorisation
-Route::post('/register', [AuthController::class, 'register']);
-Route::post('/login', [AuthController::class, 'login']);
+Route::middleware('throttle:30,1')->group(function () {
+    // authorisation
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+});
 
-Route::post('/validation/login', [AuthController::class, 'validateLogin']);
-Route::post('/validation/register', [AuthController::class, 'validateRegister']);
+Route::middleware('throttle: 200,1')->group(function () {
+    Route::post('/validation/login', [AuthController::class, 'validateLogin']);
+    Route::post('/validation/register', [AuthController::class, 'validateRegister']);
 
-// lyrics
-Route::post('/video/lyrics', [VideoController::class, 'lyrics']);
+    // lyrics
+    Route::post('/video/lyrics', [VideoController::class, 'lyrics']);
+});
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:sanctum')->middleware("throttle:70,1")->group(function () {
     // videos
     Route::post('/video/save', [VideoController::class, 'save']);
     Route::post('/video/fetch', [VideoController::class, 'fetch']);
@@ -54,13 +58,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/account/is-verified', [AuthController::class, 'isVerified']);
     Route::post('/account/send-verification-email', [AuthController::class, 'sendVerificationEmail']);
     Route::post('/account/verify-token', [AuthController::class, 'verifyToken']);
-    Route::post('/account/send-email-change-email', [AuthController::class,'sendEmailChangeEmail']);
+    Route::post('/account/send-email-change-email', [AuthController::class, 'sendEmailChangeEmail']);
     Route::post('/account/change-email', [AuthController::class, 'changeEmail']);
 });
 
-// reset password
-Route::post("/account/send-reset-password-email", [AuthController::class,'sendResetPasswordEmail']);
-Route::post("/account/change-password", [AuthController::class, 'changePassword']);
+Route::middleware('throttle:60,1')->group(function () {
+    // reset password
+    Route::post("/account/send-reset-password-email", [AuthController::class, 'sendResetPasswordEmail']);
+    Route::post("/account/change-password", [AuthController::class, 'changePassword']);
+});
 
 
 /*// csrf token
