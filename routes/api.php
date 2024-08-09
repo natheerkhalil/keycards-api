@@ -9,6 +9,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\VideoController;
 use App\Http\Controllers\PlaylistController;
 use App\Http\Controllers\ShareController;
+use App\Http\Controllers\PaymentController;
 
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
@@ -61,6 +62,10 @@ Route::group(["middleware" => ["auth:sanctum", "throttle:70,1"]], function () {
 
     // feedback
     Route::post('/feedback', [FeedbackController::class, 'create']);
+
+    // payment
+    Route::post('/create-payment-instance', [PaymentController::class, 'createPaymentIntent']);
+    Route::post('/upgrade', [PaymentController::class, 'upgrade']);
 });
 
 Route::middleware('throttle:60,1')->group(function () {
