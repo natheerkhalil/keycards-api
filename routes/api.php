@@ -19,8 +19,7 @@ Route::middleware('throttle:30,1')->group(function () {
     Route::post('/login', [AuthController::class, 'login']);
 });
 
-Route::middleware('throttle:200,1')->group(function () {
-    Route::post('/validation/register', [AuthController::class, 'validateRegister']);
+Route::middleware('throttle:50,1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
 });
 

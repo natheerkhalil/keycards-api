@@ -46,10 +46,10 @@ class AuthController extends Controller
 
         // CHECK IF USERNAME OR EMAIL ALREADY EXISTS
         if (User::where('email', $request->email)->exists()) {
-            return response()->json(['message' => 'Email already exists'], 400);
+            return response()->json(['message' => 'Email already exists'], 409);
         }
         if (User::where('username', $request->username)->exists()) {
-            return response()->json(['message' => 'Username already exists'], 400);
+            return response()->json(['message' => 'Username already exists'], 409);
         }
 
         // CREATE NEW USER
@@ -155,42 +155,6 @@ class AuthController extends Controller
         Auth::user()->tokens()->delete();
 
         return response()->json(['data' => 'Logged out successfully'], 200);
-    }
-
-
-
-    // VALIDATE FORM DATA
-    public function validateLogin(Request $request)
-    {
-        // VALIDATE GIVEN FORM DATA
-        $validator = \Validator::make($request->all(), [
-            'username' => 'required|string|min:3|max:18',
-            'password' => 'required|string|min:8',
-        ]);
-
-        // RETURN ARRAY OF VALIDATION ERRORS IF ANY
-        if ($validator->fails()) {
-            return response()->json(['data' => $validator->errors()], 200);
-        }
-
-        return response()->json(['data' => []], 200);
-    }
-
-    public function validateRegister(Request $request)
-    {
-        // VALIDATE GIVEN FORM DATA
-        $validator = \Validator::make($request->all(), [
-            'username' => 'required|string|min:3|max:18|unique:users,username',
-            'email' => 'required|string|email|max:255|unique:users,email',
-            'password' => 'required|string|min:8',
-        ]);
-
-        // RETURN ARRAY OF VALIDATION ERRORS IF ANY
-        if ($validator->fails()) {
-            return response()->json(['data' => $validator->errors()], 200);
-        }
-
-        return response()->json(['data' => []], 200);
     }
 
 
