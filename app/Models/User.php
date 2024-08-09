@@ -20,15 +20,20 @@ class User extends Authenticatable
         'username',
         'email',
         'password',
+
         'email_verification_token',
         'email_verification_token_sent_at',
         'email_verified',
+
         'reset_password_token',
         'reset_password_token_sent_at',
 
         'email_change_token',
         'email_change_token_sent_at',
         'new_email',
+
+        'membership',
+        'membership_date'
     ];
 
     /**
