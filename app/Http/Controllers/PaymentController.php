@@ -11,6 +11,15 @@ use App\Models\User;
 
 class PaymentController extends Controller
 {
+
+    private $stripeSecret;
+
+    public function __construct()
+    {
+        $this->stripeSecret = \Config::get('app.stripe_secret');
+    }
+
+
     public function createPaymentIntent()
     {
 
@@ -21,7 +30,7 @@ class PaymentController extends Controller
         }
 
         try {
-            Stripe::setApiKey(env('STRIPE_SECRET'));
+            Stripe::setApiKey($this->stripeSecret);
 
             try {
                 $paymentIntent = PaymentIntent::create([
@@ -40,7 +49,8 @@ class PaymentController extends Controller
         }
     }
 
-    private function updateMembership($user) {
+    private function updateMembership($user)
+    {
         $user->membership_date = now();
         $user->membership = true;
 
@@ -49,26 +59,26 @@ class PaymentController extends Controller
 
     public function upgrade(Request $request)
     {
-        Stripe::setApiKey(env('STRIPE_SECRET'));
-    
+        Stripe::setApiKey($this->stripeSecret);
+
         try {
             $paymentIntent = PaymentIntent::retrieve($request->payment_intent_id);
-    
+
             if ($paymentIntent->status == 'succeeded') {
                 $user = Auth::user();
-                
+
                 $this->updateMembership($user);
-    
+
                 return response()->json(['message' => 'You\'ve successfully upgraded your account!']);
             } else {
                 // Confirm the payment intent if it is not already confirmed
                 $paymentIntent->confirm();
-    
+
                 if ($paymentIntent->status == 'succeeded') {
                     $user = Auth::user();
-                    
+
                     $this->updateMembership($user);
-    
+
                     return response()->json(['message' => 'You\'ve successfully upgraded your account!']);
                 } else {
                     return response()->json(['error' => 'Payment could not be completed'], 400);
