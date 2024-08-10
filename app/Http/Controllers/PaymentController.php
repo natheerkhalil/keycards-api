@@ -25,7 +25,7 @@ class PaymentController extends Controller
 
         $user = Auth::user();
 
-        if ($user->membership == "active") {
+        if ($user->membership == 1) {
             return response()->json(['message' => 'You\'ve already upgraded your account'], 400);
         }
 
