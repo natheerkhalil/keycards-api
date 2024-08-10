@@ -21,7 +21,7 @@ class PaymentController extends Controller
         }
 
         try {
-            Stripe::setApiKey(env('STRIPE_SECRET', 'sk_test_51PkU3eKwy6XznOs2m171ssPfJju4ztCrCKJAnwdBt6oFP1Qyx6shYTUskQX0HXqMlyIQ7hIlmrSfcY96eBMzayft00Vx8aMBK6'));
+            Stripe::setApiKey(env('STRIPE_SECRET'));
 
             try {
                 $paymentIntent = PaymentIntent::create([
@@ -49,7 +49,7 @@ class PaymentController extends Controller
 
     public function upgrade(Request $request)
     {
-        Stripe::setApiKey(env('STRIPE_SECRET', 'sk_test_51PkU3eKwy6XznOs2m171ssPfJju4ztCrCKJAnwdBt6oFP1Qyx6shYTUskQX0HXqMlyIQ7hIlmrSfcY96eBMzayft00Vx8aMBK6'));
+        Stripe::setApiKey(env('STRIPE_SECRET'));
     
         try {
             $paymentIntent = PaymentIntent::retrieve($request->payment_intent_id);
