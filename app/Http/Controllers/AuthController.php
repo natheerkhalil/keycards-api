@@ -77,7 +77,7 @@ class AuthController extends Controller
 
         // RETURN TOKEN, USERNAME, AND EMAIL
         $token = $user->createToken('auth_token')->plainTextToken;
-        return response()->json(['token' => $token, 'username' => $user->username, "email" => $user->email], 200);
+        return response()->json(['token' => $token, 'username' => $user->username, "email" => $user->email, "user_is_member" => $user->membership], 200);
 
     }
     public function login(Request $request)
@@ -104,7 +104,7 @@ class AuthController extends Controller
                 $token = $user->createToken('auth_token')->plainTextToken;
 
                 // RETURN TOKEN, USERNAME, AND EMAIL
-                return response()->json(['token' => $token, 'username' => $user->username, "email" => $user->email], 200);
+                return response()->json(['token' => $token, 'username' => $user->username, "email" => $user->email, "user_is_member" => $user->membership], 200);
             } else {
                 return response()->json(['data' => 'Invalid login credentials'], 401);
             }
