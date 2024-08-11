@@ -33,7 +33,6 @@ class AuthController extends Controller
     use HasApiTokens;
 
 
-
     // REGISTERING & LOGGING IN
     public function register(Request $request)
     {
@@ -42,7 +41,40 @@ class AuthController extends Controller
             'username' => 'required|string|max:18|min:3',
             'email' => 'required|string|email|max:255',
             'password' => 'required|string|min:8',
+            'token' => "required|string"
         ]);
+
+        // VERIFY CAPTCHA TOKEN
+        try {
+            $url = "https://api.hcaptcha.com/siteverify";
+
+            $data = array(
+                'secret' => \Config::get('hcaptcha.secret_key'),
+                'response' => $request->input('token')
+            );
+
+            $ch = curl_init($url);
+
+            curl_setopt($ch, CURLOPT_POST, 1);
+
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+            $result = curl_exec($ch);
+
+            $response = json_decode($result);
+
+            if (!$response->success) {
+                return response()->json(['error' => 'Invalid captcha response', "data" => $response], 422);
+            }
+
+            curl_close($ch);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Error verifying captcha'], 500);
+        }
+        // END CAPTCHA VERIFICATION
+
 
         // CHECK IF USERNAME OR EMAIL ALREADY EXISTS
         if (User::where('email', $request->email)->exists()) {
@@ -87,8 +119,41 @@ class AuthController extends Controller
             $request->validate([
                 'username' => 'required|string',
                 'password' => 'required|string',
+                'token' => "required|string"
             ]);
 
+            // VERIFY CAPTCHA TOKEN
+            try {
+                $url = "https://api.hcaptcha.com/siteverify";
+
+                $data = array(
+                    'secret' => \Config::get('hcaptcha.secret_key'),
+                    'response' => $request->input('token')
+                );
+
+                $ch = curl_init($url);
+
+                curl_setopt($ch, CURLOPT_POST, 1);
+
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
+
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+
+                $result = curl_exec($ch);
+
+                $response = json_decode($result);
+
+                if (!$response->success) {
+                    return response()->json(['error' => 'Invalid captcha response', "data" => $response], 422);
+                }
+
+                curl_close($ch);
+            } catch (\Exception $e) {
+                return response()->json(['error' => 'Error verifying captcha'], 500);
+            }
+            // END CAPTCHA VERIFICATION
+
+            // VERIFY USER'S CREDENTIALS
             $input = $request["username"];
             $inpType = filter_var($input, FILTER_VALIDATE_EMAIL) ? 'email' : 'username';
 
