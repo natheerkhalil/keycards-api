@@ -34,7 +34,7 @@ class PaymentController extends Controller
 
             try {
                 $paymentIntent = PaymentIntent::create([
-                    'amount' => 30,
+                    'amount' => 499,
                     'currency' => 'gbp',
                 ]);
 
