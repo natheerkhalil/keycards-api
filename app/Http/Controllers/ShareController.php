@@ -92,6 +92,12 @@ class ShareController extends Controller
             // CONVERT VIDEO DATA TO ARRAY
             $data = $data->toArray();
 
+            // CHECK IF USER HAS MAX STORAGE
+            $membership = $user->membership;
+            if ($membership == "0" && Video::where("username", $user->username)->count() >= 99) {
+                return response()->json(["data" => "You have reached your maximum storage limit. Please upgrade your membership"], 403);
+            }
+
             // CREATE NEW VIDEO RECORD AND ASSOCIATE IT WITH THE RECEIVER
             Video::create($data);
 
