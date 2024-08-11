@@ -36,6 +36,9 @@ class PaymentController extends Controller
                 $paymentIntent = PaymentIntent::create([
                     'amount' => 499,
                     'currency' => 'gbp',
+                    "metadata" => [
+                        "username" => $user->username
+                    ]
                 ]);
 
                 return response()->json([
