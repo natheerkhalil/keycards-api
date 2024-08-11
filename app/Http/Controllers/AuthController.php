@@ -32,6 +32,17 @@ class AuthController extends Controller
 {
     use HasApiTokens;
 
+    // RETURN MEMBERSHIP STATUS
+    public function membershipStatus() {
+        $user = Auth::user();
+
+        if (!$user->membership) {
+            return response()->json(["data" => false]);
+        } else {
+            return response()->json(["data" => true]);
+        }
+    }
+
 
     // REGISTERING & LOGGING IN
     public function register(Request $request)
