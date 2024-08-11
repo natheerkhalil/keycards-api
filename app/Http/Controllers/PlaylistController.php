@@ -83,6 +83,13 @@ class PlaylistController extends Controller
 
         $user = Auth::user();
 
+        // CHECK IF USER HAS REACHED PLAYLIST LIMIT
+        $membership = $user->membership;
+
+        if ($membership == "0" && Playlist::where("username", $user->username)->count() >= 9) {
+            return response()->json(["error" => "You have reached your playlist limit"], 403);
+        }
+
         // CREATE PLAYLIST AND ASSIGN IT TO THE AUTHENTICATED USER
         $playlist = Playlist::create([
             "name" => $request->name,
