@@ -23,8 +23,8 @@ class VideoController extends Controller
 
     public function __construct()
     {
-        $this->apiKey = env("YT_API_KEY");
-        $this->geniusAccessToken = env("GENIUS_ACCESS_TOKEN");
+        $this->apiKey = \Config::get('app.yt_api_key');
+        $this->geniusAccessToken = \Config::get('app.genius_access_token');
     }
 
     // GET VIDEO LYRICS

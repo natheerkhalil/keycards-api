@@ -127,12 +127,14 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Payment Key - Stripe
+    | Env Variables
     |--------------------------------------------------------------------------
     |
 
     */
 
     'stripe_secret' => env('STRIPE_SECRET'),
+    'genius_access_token' => env('GENIUS_ACCESS_TOKEN'),
+    'yt_api_key' => env('YT_API_KEY'),
 
 ];
