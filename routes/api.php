@@ -59,6 +59,7 @@ Route::group(["middleware" => ["auth:sanctum", "throttle:70,1"]], function () {
     Route::post('/account/verify-token', [AuthController::class, 'verifyToken']);
     Route::post('/account/send-email-change-email', [AuthController::class, 'sendEmailChangeEmail']);
     Route::post('/account/change-email', [AuthController::class, 'changeEmail']);
+    Route::post('/account/membership-status', [AuthController::class, 'membershipStatus']);
 
     // feedback
     Route::post('/feedback', [FeedbackController::class, 'create']);
