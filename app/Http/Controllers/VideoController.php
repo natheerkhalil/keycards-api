@@ -312,6 +312,13 @@ class VideoController extends Controller
             return response()->json(["data" => $request->desc], 201);
         }
 
+        // CHECK IF USER HAS REACHED VIDEO LIMIT
+        $membership = $user->membership;
+
+        if ($membership == "0" && Video::where("username", $user->username)->count() >= 99) {
+            return response()->json(["error" => "You have reached your video limit"], 403);
+        }
+
         // IF VIDEO DOESN'T EXIST, CREATE IT
         $video = Video::create([
             "title" => $request->title,
