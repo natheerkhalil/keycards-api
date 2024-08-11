@@ -36,7 +36,11 @@ class AuthController extends Controller
     public function membershipStatus() {
         $user = Auth::user();
 
-        return $user->membership;
+        if (!$user->membership) {
+            return response()->json(["data" => false]);
+        } else {
+            return response()->json(["data" => true]);
+        }
     }
 
 
