@@ -56,7 +56,7 @@ class AuthController extends Controller
             $url = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
             $data = array(
-                'secret' => \Config::get('hcaptcha.secret_key'),
+                'secret' => \Config::get('captcha.secret_key'),
                 'response' => $request->input('token')
             );
 
@@ -134,7 +134,7 @@ class AuthController extends Controller
                 $url = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 
                 $data = array(
-                    'secret' => \Config::get('hcaptcha.secret_key'),
+                    'secret' => \Config::get('captcha.secret_key'),
                     'response' => $request->input('token')
                 );
 
