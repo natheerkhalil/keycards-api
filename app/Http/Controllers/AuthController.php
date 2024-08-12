@@ -26,6 +26,8 @@ use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
 use Mailtrap\EmailHeader\CategoryHeader;
 
+use Http;
+
 use Illuminate\Support\Facades\Log;
 
 class AuthController extends Controller
@@ -33,10 +35,36 @@ class AuthController extends Controller
     use HasApiTokens;
 
     // RETURN MEMBERSHIP STATUS
-    public function membershipStatus() {
+    public function membershipStatus()
+    {
         $user = Auth::user();
 
         return response()->json(["data" => $user->membership], 200);
+    }
+
+    // VERIFY CAPTCHA TOKEN
+    private function verifyCaptcha($token)
+    {
+        // Cloudflare Turnstile verification URL
+        $url = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
+
+        // Prepare the data for the POST request
+        $data = [
+            'secret' => \Config::get('captcha.secret_key'),
+            'response' => $token,
+        ];
+        try {
+            // Send the POST request to Cloudflare Turnstile
+            $response = Http::asForm()->post($url, $data);
+
+            // Decode the JSON response
+            $result = $response->json();
+
+            // Check if the captcha verification was successful
+            return $result['success'];
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
 
@@ -52,33 +80,8 @@ class AuthController extends Controller
         ]);
 
         // VERIFY CAPTCHA TOKEN
-        try {
-            $url = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
-
-            $data = array(
-                'cf-turnstile-secret' => \Config::get('captcha.secret_key'),
-                'cf-turnstile-response' => $request->input('token')
-            );
-
-            $ch = curl_init($url);
-
-            curl_setopt($ch, CURLOPT_POST, 1);
-
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-            $result = curl_exec($ch);
-
-            $response = json_decode($result);
-
-            if (!$response->success) {
-                return response()->json(['error' => 'Invalid captcha response', "data" => $response], 422);
-            }
-
-            curl_close($ch);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Error verifying captcha'], 500);
+        if (!$this->verifyCaptcha($request->input('token'))) {
+            return response()->json(['error' => 'Invalid captcha response'], 422);
         }
         // END CAPTCHA VERIFICATION
 
@@ -130,33 +133,8 @@ class AuthController extends Controller
             ]);
 
             // VERIFY CAPTCHA TOKEN
-            try {
-                $url = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
-
-                $data = array(
-                    'cf-turnstile-secret' => \Config::get('captcha.secret_key'),
-                    'cf-turnstile-response' => $request->input('token')
-                );
-
-                $ch = curl_init($url);
-
-                curl_setopt($ch, CURLOPT_POST, 1);
-
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $data);
-
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-
-                $result = curl_exec($ch);
-
-                $response = json_decode($result);
-
-                if (!$response->success) {
-                    return response()->json(['error' => 'Invalid captcha response', "data" => $response, "key" => \Config::get('captcha.secret_key')], 422);
-                }
-
-                curl_close($ch);
-            } catch (\Exception $e) {
-                return response()->json(['error' => 'Error verifying captcha'], 500);
+            if (!$this->verifyCaptcha($request->input('token'))) {
+                return response()->json(['error' => 'Invalid captcha response'], 422);
             }
             // END CAPTCHA VERIFICATION
 
