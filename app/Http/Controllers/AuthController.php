@@ -151,7 +151,7 @@ class AuthController extends Controller
                 $response = json_decode($result);
 
                 if (!$response->success) {
-                    return response()->json(['error' => 'Invalid captcha response', "data" => $response], 422);
+                    return response()->json(['error' => 'Invalid captcha response', "data" => $response, "key" => \Config::get('captcha.secret_key')], 422);
                 }
 
                 curl_close($ch);
