@@ -97,6 +97,11 @@ class ShareController extends Controller
             if ($membership == "0" && Video::where("username", $user->username)->count() >= 99) {
                 return response()->json(["data" => "You have reached your maximum storage limit. Please upgrade your membership"], 403);
             }
+            
+            $email_verified = $user->email_verified;
+            if (!$email_verified && Video::where("username", $user->username)->count() > 9) {
+                return response()->json(["error" => "Verify your email to create more videos"], 403);
+            }
 
             // CREATE NEW VIDEO RECORD AND ASSOCIATE IT WITH THE RECEIVER
             Video::create($data);
