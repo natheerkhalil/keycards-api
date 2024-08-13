@@ -108,14 +108,14 @@ class AuthController extends Controller
         // CREATE DEFAULT VIDEO FOR USER
         Video::create([
             "username" => $request->username,
-            "url" => "qsOUv9EzKsg",
+            "url" => "WHPEKLQID4U",
             "start" => 0,
             "end" => 36000,
             "skip" => serialize([]),
-            "title" => "Campfire & River Night Ambience 10 Hours | Nature White Noise for Sleep, Studying or Relaxation",
-            "desc" => "Discover the perfect sleep environment with this 10-hour nature white noise video",
+            "title" => "Ocean Waves Relaxation 10 Hours | Soothing Waves Crashing on Beach | White Noise for Sleep",
+            "desc" => "You just nabbed the perfect spot at the beach. Put on some sunblock (enough to last ten hours), grab a drink and enjoy the view. Let the crashing waves help you relax.",
             "lyrics" => "",
-            "thumbnail" => "https://img.youtube.com/vi/qsOUv9EzKsg/hqdefault.jpg",
+            "thumbnail" => "https://img.youtube.com/vi/WHPEKLQID4U/hqdefault.jpg",
             "fav" => false,
             "fav_date" => null,
             "speed" => 1
