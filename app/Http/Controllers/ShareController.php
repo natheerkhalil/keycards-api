@@ -24,6 +24,11 @@ class ShareController extends Controller
 
         $user = Auth::user();
 
+        $email_verified = $user->email_verified;
+        if (!$email_verified) {
+            return response()->json(["error" => "You need to verify your email to be able to share videos"], 403);
+        }
+
         try {
 
             // GET VIDEO VIA ID FROM AUTHENTICATED USER
