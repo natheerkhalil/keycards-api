@@ -29,6 +29,11 @@ class ShareController extends Controller
             return response()->json(["error" => "You need to verify your email to be able to share videos"], 403);
         }
 
+        $banned_share = $user->banned_share;
+        if ($banned_share) {
+            return response()->json(["error" => "You have been banned from sharing videos"], 423);
+        }
+
         try {
 
             // GET VIDEO VIA ID FROM AUTHENTICATED USER
@@ -102,10 +107,16 @@ class ShareController extends Controller
             if ($membership == "0" && Video::where("username", $user->username)->count() >= 99) {
                 return response()->json(["data" => "You have reached your maximum storage limit. Please upgrade your membership"], 403);
             }
-            
+
             $email_verified = $user->email_verified;
             if (!$email_verified && Video::where("username", $user->username)->count() > 9) {
                 return response()->json(["error" => "Verify your email to create more videos"], 403);
+            }
+
+            // CHECK IF USER HAS BEEN BANNED FROM CREATING VIDEOS
+            $banned_create = $user->banned_create;
+            if ($banned_create) {
+                return response()->json(["error" => "You have been banned from creating videos"], 423);
             }
 
             // CREATE NEW VIDEO RECORD AND ASSOCIATE IT WITH THE RECEIVER

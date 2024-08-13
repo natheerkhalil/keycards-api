@@ -95,6 +95,12 @@ class PlaylistController extends Controller
             return response()->json(["error" => "Verify your email to create more playlists"], 403);
         }
 
+        // CHECK IF USER HAS BEEN BANNED FROM CREATING PLAYLISTS
+        $banned_create = $user->banned_create;
+        if ($banned_create) {
+            return response()->json(["error" => "You have been banned from creating playlists"], 423);
+        }
+
         // CREATE PLAYLIST AND ASSIGN IT TO THE AUTHENTICATED USER
         $playlist = Playlist::create([
             "name" => $request->name,

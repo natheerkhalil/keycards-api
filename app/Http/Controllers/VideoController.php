@@ -324,6 +324,12 @@ class VideoController extends Controller
             return response()->json(["error" => "Verify your email to create more videos"], 403);
         }
 
+        // CHECK IF USER HAS BEEN BANNED FROM CREATING VIDEOS
+        $banned_create = $user->banned_create;
+        if ($banned_create) {
+            return response()->json(["error" => "You have been banned from creating videos"], 423);
+        }
+
         // IF VIDEO DOESN'T EXIST, CREATE IT
         $video = Video::create([
             "title" => $request->title,
