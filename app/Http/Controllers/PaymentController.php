@@ -25,6 +25,12 @@ class PaymentController extends Controller
 
         $user = Auth::user();
 
+        $email_verified = $user->email_verified;
+
+        if (!$email_verified) {
+            return response()->json(['message' => 'Please verify your email address to be able to upgrade'], 401);
+        }
+
         if ($user->membership == 1) {
             return response()->json(['message' => 'You\'ve already upgraded your account'], 400);
         }
