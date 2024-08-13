@@ -90,6 +90,11 @@ class PlaylistController extends Controller
             return response()->json(["error" => "You have reached your playlist limit"], 403);
         }
 
+        $email_verified = $user->email_verified;
+        if (!$email_verified && Playlist::where("username", $user->username)->count() > 0) {
+            return response()->json(["error" => "Verify your email to create more playlists"], 403);
+        }
+
         // CREATE PLAYLIST AND ASSIGN IT TO THE AUTHENTICATED USER
         $playlist = Playlist::create([
             "name" => $request->name,
