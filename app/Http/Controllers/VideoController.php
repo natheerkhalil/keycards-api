@@ -319,6 +319,11 @@ class VideoController extends Controller
             return response()->json(["error" => "You have reached your video limit"], 403);
         }
 
+        $email_verified = $user->email_verified;
+        if (!$email_verified && Video::where("username", $user->username)->count() > 9) {
+            return response()->json(["error" => "Verify your email to create more videos"], 403);
+        }
+
         // IF VIDEO DOESN'T EXIST, CREATE IT
         $video = Video::create([
             "title" => $request->title,
