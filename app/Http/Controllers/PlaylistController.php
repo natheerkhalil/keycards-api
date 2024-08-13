@@ -78,7 +78,7 @@ class PlaylistController extends Controller
     {
         // CHECK THAT PLAYLIST NAME HAS BEEN PROVIDED
         $request->validate([
-            "name" => "required|string|max:35"
+            "name" => "required|string|max:50"
         ]);
 
         $user = Auth::user();
