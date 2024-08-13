@@ -13,14 +13,22 @@ class FeedbackController extends Controller
 {
     public function create(Request $request)
     {
+        $user = Auth::user();
+
+        $banned_feedback = $user->banned_feedback;
+
+        if ($banned_feedback) {
+            return response()->json([
+                "message" => "You are banned from providing feedback."
+            ], 423);
+        }
+
         try {
             $request->validate([
                 "data" => "required|string|max:9999",
             ]);
 
             // SAVE DATA TO FEEDBACK TABLE
-            $user = Auth::user();
-
             $username = $user->username;
 
             Feedback::create([
