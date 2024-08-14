@@ -83,9 +83,16 @@ class AuthController extends Controller
             'token' => "required|string"
         ]);
 
+        // Remove all spaces and non-alphanumeric characters
+        $request->username = preg_replace('/[^a-zA-Z0-9]+/', '', $request->input('username'));
+
+        if (strlen($request->username) < 3 || strlen($request->username) > 18) {
+            return response()->json(['error' => 'Username must be between 3 and 18 characters long'], 422);
+        }
+
         // VERIFY CAPTCHA TOKEN
         if (!$this->verifyCaptcha($request->input('token'))) {
-            return response()->json(['error' => 'Invalid captcha response'], 422);
+            return response()->json(['error' => 'Invalid captcha response'], 498);
         }
         // END CAPTCHA VERIFICATION
 
@@ -138,7 +145,7 @@ class AuthController extends Controller
 
             // VERIFY CAPTCHA TOKEN
             if (!$this->verifyCaptcha($request->input('token'))) {
-                return response()->json(['error' => 'Invalid captcha response'], 422);
+                return response()->json(['error' => 'Invalid captcha response'], 498);
             }
             // END CAPTCHA VERIFICATION
 
