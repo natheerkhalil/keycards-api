@@ -83,11 +83,13 @@ class AuthController extends Controller
             'token' => "required|string"
         ]);
 
+        $unchanged_username = $request->input('username');
+
         // Remove all spaces and non-alphanumeric characters
         $request->username = preg_replace('/[^a-zA-Z0-9]+/', '', $request->input('username'));
 
-        if (strlen($request->username) < 3 || strlen($request->username) > 18) {
-            return response()->json(['error' => 'Username must be between 3 and 18 characters long'], 422);
+        if ($request->username != $unchanged_username) {
+            return response()->json(['message' => 'Username contains invalid characters'], 400);
         }
 
         // VERIFY CAPTCHA TOKEN
