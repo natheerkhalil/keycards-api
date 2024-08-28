@@ -151,6 +151,9 @@ class AuthController extends Controller
                 'token' => "required|string"
             ]);
 
+            // Set username or email to lowercase
+            $request->username = strtolower($request->input('username'));
+
             // VERIFY CAPTCHA TOKEN
             if (!$this->verifyCaptcha($request->input('token'))) {
                 return response()->json(['error' => 'Invalid captcha response'], 498);
