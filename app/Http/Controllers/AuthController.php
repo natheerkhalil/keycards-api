@@ -88,6 +88,12 @@ class AuthController extends Controller
         // Remove all spaces and non-alphanumeric characters
         $request->username = preg_replace('/[^a-zA-Z0-9]+/', '', $request->input('username'));
 
+        // Make username lowercase
+        $request->username = strtolower($request->username);
+
+        // Make email lowercase
+        $request->email = strtolower($request->email);
+
         if ($request->username != $unchanged_username) {
             return response()->json(['message' => 'Username contains invalid characters'], 400);
         }
