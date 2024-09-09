@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('shares', function (Blueprint $table) {
-            $table->unsignedBigInteger("video");
-            $table->foreign("video")->references("id")->on("videos")->onDelete("cascade")->onUpdate("restrict");
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn('name');
         });
     }
 
@@ -22,9 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('shares', function (Blueprint $table) {
-            $table->dropForeign(['video']);
-            $table->dropColumn("video");
+        Schema::table('users', function (Blueprint $table) {
+            $table->string("name");
         });
     }
 };

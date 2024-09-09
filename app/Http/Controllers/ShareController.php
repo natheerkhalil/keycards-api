@@ -2,165 +2,219 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Share;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
-use App\Models\Video;
-use App\Models\Share;
-use App\Models\User;
-
 use Illuminate\Support\Facades\Auth;
+
+use App\Models\Folder;
 
 class ShareController extends Controller
 {
-    // CREATE SHARE
+    // C . R . U . D //
+
+    // CREATE
     public function create(Request $request)
     {
-        // VALIDATE THAT USERNAME OF USER TO BE SHARED WITH AND URL OF VIDEO HAVE BEEN PROVIDED
-        $request->validate([
-            "username" => "required|string|exists:users,username",
-            "url" => "required|exists:videos,url"
-        ]);
-
-        $user = Auth::user();
-
-        $email_verified = $user->email_verified;
-        if (!$email_verified) {
-            return response()->json(["error" => "You need to verify your email to be able to share videos"], 403);
-        }
-
-        $banned_share = $user->banned_share;
-        if ($banned_share) {
-            return response()->json(["error" => "You have been banned from sharing videos"], 423);
-        }
-
         try {
+            $request->validate([
+                "folder" => "required|string|exists:folders,id",
+                "receiver" => "required|string|exists:users,username",
+                "view_only" => "boolean|required",
+                
+                "cards" => "boolean|required",
+                "children" => "boolean|required"
+            ]);
 
-            // GET VIDEO VIA ID FROM AUTHENTICATED USER
-            $video = Video::where("url", $request->url)->where("username", $user->username)->firstOrFail();
+            $user = Auth::user();
 
-            // GET USER TO BE SHARED WITH VIA USERNAME
-            $receiver = User::where("username", $request->username)->firstOrFail();
+            $folder = Folder::where("creator", $user->username)->where("id", $request->folder)->firstOrFail();
 
-            // CHECK IF THIS VIDEO HAS ALREADY BEEN SHARED WITH THIS USER
-            $existing_share = Share::where("sender", $user->username)->where("receiver", $request->username)->where("video", $video->id)->first();
+            if ($user->username == $request->receiver) {
+                return response()->json(["error" => "You can't share a folder with yourself."], 400);
+            }
 
+            $share = Folder::where("sharer", $user->username)->where("receiver", $request->receiver)->where("folder", $folder->id)->first();
+
+            if ($share) {
+                return response()->json(["error" => "Folder already shared with this receiver."], 400);
+            }
+
+            Share::create([
+                "sharer" => $user->username,
+                "receiver" => $request->receiver,
+                "folder" => $folder->id,
+                "view_only" => $request->view_only
+            ]);
+
+            return response()->json(["message" => "Folder shared successfully."], 200);
         } catch (\Exception $e) {
-            return response()->json(["data" => $e->getMessage()], 422);
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-
-        if ($existing_share) {
-            return response()->json(["data" => "You have already shared this video with this user."], 400);
-        }
-
-        // CHECK IF THIS USER ALREADY HAS THIS VIDEO IN THEIR LIBRARY
-        $existing_video = Video::where("url", $request->url)->where("username", $receiver->username)->first();
-
-        if ($existing_video) {
-            return response()->json(["data" => "This user already has this video in their library."], 400);
-        }
-
-        // CHECK IF USER IS SHARING THIS VIDEO WITH THEMSELVES
-        if ($user->username == $request->receiver) {
-            return response()->json(["data" => "You cannot share a video with yourself"], 400);
-        }
-
-        // CREATE NEW SHARE RECORD AND ASSOCIATE IT WITH THE VIDEO AND USERS
-        Share::create([
-            "sender" => $user->username,
-            "receiver" => $request->username,
-            "video" => $video->id
-        ]);
-
-        return response()->json(["data" => "Video shared successfully"], 200);
     }
 
-    // ACCEPT OR REJECT RECEIVED SHARE
-    public function respond(Request $request)
-    {
-        // VALIDATE THAT SHARE ID AND RESPONSE (ACCEPTED OR REJECTED) HAVE BEEN PROVIDED
-        $request->validate([
-            "id" => "required|integer|exists:shares,id",
-            "res" => "required|boolean"
-        ]);
+    // READ
+    public function read(Request $request) {
+        try {
+            $request->validate([
+                "share" => "required|integer|exists:shares,id",
+            ]);
 
+            $user = Auth::user();
+
+            $share = Share::where("id", $request->share)->where("receiver", $user->username)->where("accepted", false)->first();
+
+            if (!$share) 
+                $share = Share::where("id", $request->share)->where("sender", $user->username)->firstOrFail();
+
+            return response()->json($share, 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    // UPDATE
+    public function update(Request $request) {
+        try {
+            $request->validate([
+                "share" => "required|integer|exists:shares,id",
+                "view_only" => "boolean|required",
+
+                "cards" => "boolean|required",
+                "children" => "boolean|required"
+            ]);
+
+            $user = Auth::user();
+
+            $share = Share::where("id", $request->share)->where("sharer", $user->username)->where("accepted", false)->firstOrFail();
+
+            $share->view_only = $request->view_only;
+            $share->cards = $request->cards;
+            $share->children = $request->children;
+            $share->save();
+
+            return response()->json(["message" => "Folder share updated successfully."], 200);
+        }
+    }
+
+    // DELETE
+    public function delete(Request $request) {
+        try {
+            $request->validate([
+                "share" => "required|integer|exists:shares,id",
+            ]);
+
+            $user = Auth::user();
+
+            $share = Share::where("id", $request->share)->where("sender", $user->username)->where("accepted", false)->firstOrFail();
+
+            $share->delete();
+
+            return response()->json(["message" => "Folder share deleted successfully."], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    // END C . R . U . D //
+
+
+    // ACCEPT & DECLINE //
+    public function accept(Request $request)
+    {
+        try {
+            $request->validate([
+                "share" => "required|integer|exists:shares,id",
+            ]);
+
+            $user = Auth::user();
+
+            $share = Share::where("id", $request->share)->where("receiver", $user->username)->where("accepted", false)->where("view_only", false)->firstOrFail();
+
+            $share->accepted = true;
+            $share->save();
+
+            $folder = Folder::where("id", $share->folder)->firstOrFail();
+
+            Folder::create([
+                "creator" => $folder->creator,
+                "name" => $folder->name,
+                "parent_folder" => null,
+            ]);
+
+            return response()->json(["message" => "Share accepted and folder copied."], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+    public function decline(Request $request) {
+        try {
+            $request->validate([
+                "share" => "required|integer|exists:shares,id",
+            ]);
+
+            $user = Auth::user();
+
+            $share = Share::where("id", $request->share)->where("receiver", $user->username)->where("accepted", false)->firstOrFail();
+
+            $share->delete();
+
+            return response()->json(["message" => "Share declined."], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    // PREVIEW //
+    public function preview(Request $request)
+    {
+        try {
+            $request->validate([
+                "share" => "required|integer|exists:shares,id",
+            ]);
+
+            $user = Auth::user();
+
+            $share = Share::where("id", $request->share)->where("receiver", $user->username)->where("accepted", false)->first();
+
+            if (!$share) {
+                $share = Share::where("id", $request->share)->where("receiver", $user->username)->where("view_only", true)->firstOrFail();
+            }
+
+            $folder = Folder::where("id", $share->folder)->firstOrFail();
+
+            $cards = $folder->cards()->get();
+            $children = $folder->children()->get();
+
+            $data = [];
+
+            $data["folder"] = $folder;
+
+            if ($share->cards)
+                $data["cards"] = $cards;
+            if ($share->children)
+                $data["children"] = $children;
+
+            return response()->json($data, 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+    // LIST //
+    public function listReceived(Request $request) {
         $user = Auth::user();
 
-        // GET SHARE RECORD VIA ID AND USERNAME
-        $share = Share::where("id", $request->id)->where("receiver", $user->username)->where("accepted", false)->firstOrFail();
+        $shares = Share::where("receiver", $user->username)->where("accepted", false)->get();
 
-        // IF SHARE IS ACCEPTED
-        if ($request->res) {
-            // GET VIDEO DATA VIA ID
-            $data = Video::where("id", $share->video)->where("username", $share->sender)->select(["title", "desc", "thumbnail", "start", "end", "skip", "lyrics", "url", "speed"])->first();
-
-            // CHANGE VIDEO USERNAME TO RECEIVER
-            $data->username = $user->username;
-            // CHANGE FAV STATUS TO FALSE
-            $data->fav = false;
-
-            // CONVERT VIDEO DATA TO ARRAY
-            $data = $data->toArray();
-
-            // CHECK IF USER HAS MAX STORAGE
-            $membership = $user->membership;
-            if ($membership == "0" && Video::where("username", $user->username)->count() >= 99) {
-                return response()->json(["data" => "You have reached your maximum storage limit. Please upgrade your membership"], 403);
-            }
-
-            $email_verified = $user->email_verified;
-            if (!$email_verified && Video::where("username", $user->username)->count() > 9) {
-                return response()->json(["error" => "Verify your email to create more videos"], 403);
-            }
-
-            // CHECK IF USER HAS BEEN BANNED FROM CREATING VIDEOS
-            $banned_create = $user->banned_create;
-            if ($banned_create) {
-                return response()->json(["error" => "You have been banned from creating videos"], 423);
-            }
-
-            // CREATE NEW VIDEO RECORD AND ASSOCIATE IT WITH THE RECEIVER
-            Video::create($data);
-
-            // UPDATE SHARE RECORD TO ACCEPTED
-            $share->update([
-                "accepted" => true
-            ]);
-        } else {
-            // IF SHARE IS REJECTED, DELETE SHARE RECORD
-            $share->delete();
-        }
-
-        return response()->json(["data" => "Share responded to successfully"], 200);
+        return response()->json($shares, 200);
     }
-
-    // GET ALL RECEIVED SHARES
-    public function list(Request $request)
-    {
-        $shares = Share::where("receiver", Auth::user()->username)->where("accepted", false)->get();
-
-        $data = [];
-
-        foreach ($shares as $s) {
-            // IF VIDEO NO LONGER EXISTS, SKIP IT
-            $v = Video::where("id", $s->video)->first() ? Video::where("id", $s->video)->first() : null;
-
-            if ($v == null) {
-                return;
-            }
-
-            // SERIALIZE VIDEO SKIPS
-            $v->skip = unserialize($v->skip);
-
-            // ADD VIDEO DATA TO ARRAY
-            $data[] = [
-                "id" => $s->id,
-                "video" => $v,
-                "sender" => $s->sender,
-                "accepted" => false
-            ];
-        }
-
-        return response()->json(["data" => $data], 200);
+    public function listSent(Request $request) {
+        $user = Auth::user();
+        
+        $shares = Share::where("sender", $user->username)->get();
+        
+        return response()->json($shares, 200);
     }
 }

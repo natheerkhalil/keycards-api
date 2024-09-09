@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('videos', function (Blueprint $table) {
-            $table->float("speed")->default("1.0");
+        Schema::table('users', function (Blueprint $table) {
+            $table->string("username", 18)->unique();
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('videos', function (Blueprint $table) {
-            $table->dropColumn("speed");
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn("username");
         });
     }
 };
