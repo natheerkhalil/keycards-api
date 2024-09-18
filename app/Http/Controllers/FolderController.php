@@ -10,6 +10,20 @@ use Illuminate\Support\Facades\Auth;
 
 class FolderController extends Controller
 {
+    private function getThemes() {
+        return [
+            "aura",
+            "dune",
+            "ciel",
+            "topiary",
+            "navy",
+            "alpine",
+            "eventide",
+            "mythical",
+            "shroud",
+            "lite"
+        ];
+    }
 
     // Permission check for folder
     private function isDescendant($folderId, $parentId, $username)
@@ -32,10 +46,12 @@ class FolderController extends Controller
     // CREATE
     public function create(Request $request)
     {
+        $themes = implode(",", $this->getThemes());
         try {
             $request->validate([
                 "name" => "required|string|max:255|min:1",
-                "parent" => "nullable|string|exists:folders,id",
+                "theme" => "required|string|in:$themes",
+                "parent" => "nullable|exists:folders,id",
             ]);
 
             $user = Auth::user();
@@ -51,10 +67,11 @@ class FolderController extends Controller
             $folder = new Folder();
             $folder->name = $request->name;
             $folder->creator = $user->username;
+            $folder->theme = $request->theme;
             $folder->parent = $request->parent;
             $folder->save();
 
-            return response()->json(["data" => $folder->id]);
+            return response()->json(["id" => $folder->id]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(["error" => $e->getMessage()], 400);
         }

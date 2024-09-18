@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\FolderController;
 use App\Http\Controllers\CardController;
 use App\Http\Controllers\ShareController;
+use App\Http\Controllers\DataController;
 
 Route::middleware(['auth:sanctum'])->get('/user', function (Request $request) {
     return $request->user();
@@ -22,6 +23,9 @@ Route::middleware('throttle:50,1')->group(function () {
 });
 
 Route::group(["middleware" => ["auth:sanctum", "throttle:70,1"]], function () {
+    // get all data
+    Route::post("/all", [DataController::class, 'all']);
+
     // folder
     Route::post("/folder/create", [FolderController::class, 'create']);
     Route::post("/folder/read", [FolderController::class,'read']);

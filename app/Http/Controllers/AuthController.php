@@ -134,7 +134,7 @@ class AuthController extends Controller
             }
 
             if (!$user) {
-                return response()->json(['data' => 'User not found'], 404);
+                return response()->json(['data' => 'User not found'], 401);
             }
 
             // AUTHENTICATE USER BASED ON PROVIDED CREDENTIALS

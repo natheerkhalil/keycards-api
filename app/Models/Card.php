@@ -5,13 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Relationship extends Model
+class Card extends Model
 {
     use HasFactory;
 
-    protected $table = "relationships";
-
     protected $fillable = [
-        "video", "playlist", "username"
+        "creator",
+
+        "q",
+        "a",
+
+        "status",
+
+        "last_reviewed",
+
+        "folder"
     ];
 }

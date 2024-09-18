@@ -34,16 +34,16 @@ class CardController extends Controller
             $card = [
                 "q" => $request->q,
                 "a" => $request->a,
-                "folder" => $request->folder,
+                "folder" => $folder->id,
                 "creator" => $user->username,
-                "status" => 0,
+                "status" => "0",
                 "created_at" => now(),
                 "updated_at" => now(),
             ];
 
-            Card::create($card);
+            $data = Card::create($card);
 
-            return response()->json(["message" => "Card created successfully"]);
+            return response()->json(["id" => $data->id]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(["error" => $e->getMessage()], 400);
         }
