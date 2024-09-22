@@ -6,6 +6,8 @@ use App\Models\Folder;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
+use App\Models\Card;
+
 use Illuminate\Support\Facades\Auth;
 
 class FolderController extends Controller
@@ -103,6 +105,7 @@ class FolderController extends Controller
                 "folder" => "required|string|exists:folders,id",
                 "name" => "nullable|string|max:255|min:1",
                 "parent" => "nullable|string|exists:folders,id",
+                "theme" => "nullable|string|in:". implode(",", $this->getThemes()),
             ]);
 
             $user = Auth::user();
@@ -121,6 +124,10 @@ class FolderController extends Controller
                 }
 
                 $folder->parent = $request->parent;
+            }
+
+            if ($request->theme) {
+                $folder->theme = $request->theme;
             }
 
             $folder->save();
@@ -143,6 +150,18 @@ class FolderController extends Controller
             $user = Auth::user();
 
             $folder = Folder::where("creator", $user->username)->where("id", $request->folder)->firstOrFail();
+
+            $children = Folder::where("parent", $folder->id)->get();
+
+            if ($children->count() > 0) {
+                return response()->json(["error" => "Folder cannot be deleted because it has children"], 400);
+            }
+
+            $cards = Card::where("folder", $folder->id)->get();
+
+            if ($cards->count() > 0) {
+                return response()->json(["error" => "Folder cannot be deleted because it has cards"], 400);
+            }
 
             $folder->delete();
 

@@ -22,17 +22,21 @@ Route::middleware('throttle:50,1')->group(function () {
     Route::post('/register', [AuthController::class, 'register']);
 });
 
-Route::group(["middleware" => ["auth:sanctum", "throttle:70,1"]], function () {
+Route::group(["middleware" => ["auth:sanctum", "throttle:10,1"]], function () {
+    // create many cards
+    Route::post("/card/create-many", [CardController::class, 'createMany']);
+});
+
+Route::group(["middleware" => ["auth:sanctum", "throttle:150,1"]], function () {
     // get all data
     Route::post("/all", [DataController::class, 'all']);
 
     // folder
     Route::post("/folder/create", [FolderController::class, 'create']);
-    Route::post("/folder/read", [FolderController::class,'read']);
+    Route::post("/folder/get", [FolderController::class,'read']);
     Route::post("/folder/update", [FolderController::class, 'update']);
     Route::post("/folder/delete", [FolderController::class, 'delete']);
 
-    Route::post("/folder/move", [FolderController::class,'move']);
     Route::post("/folder/list", [FolderController::class, 'list']);
     Route::post("/folder/children", [FolderController::class, 'children']);
     Route::post("/folder/cards", [FolderController::class, 'cards']);
@@ -45,6 +49,7 @@ Route::group(["middleware" => ["auth:sanctum", "throttle:70,1"]], function () {
 
     Route::post("/card/list", [CardController::class, 'list']);
     Route::post("/card/mark", [CardController::class,'mark']);
+    Route::post("/card/move", [CardController::class,'move']);
 
     // share
     Route::post("/share/create", [ShareController::class, 'create']);

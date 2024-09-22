@@ -49,6 +49,61 @@ class CardController extends Controller
         }
     }
 
+    // CREATE
+    public function createMany(Request $request)
+    {
+        try {
+            $request->validate([
+                "cards" => "required|array|max:500",
+                "cards.*.q" => "required|string|max:9999|min:1",
+                "cards.*.a" => "required|string|max:9999|min:1",
+                "folder" => "required|exists:folders,id",
+            ]);
+
+            $user = Auth::user();
+
+            $folder = Folder::where("creator", $user->username)->where("id", $request->folder)->firstOrFail();
+
+            $cards = [];
+
+            foreach ($request->cards as $card) {
+                $cards[] = [
+                    "q" => trim($card["q"]),
+                    "a" => trim($card["a"]),
+                    "folder" => $folder->id,
+                    "creator" => $user->username,
+                    "status" => "0",
+                    "created_at" => now(),
+                    "updated_at" => now(),
+                ];
+            }
+
+            $data = Card::insert($cards);
+
+            $insertedCards = Card::where('folder', $folder->id)
+                ->where('creator', $user->username)
+                ->orderBy('created_at', 'desc')
+                ->take(count($cards))
+                ->get();
+
+
+            return response()->json([
+                "cards" => $insertedCards->map(function ($card) {
+                    return [
+                        "id" => $card->id,
+                        "q" => $card->q,
+                        "a" => $card->a,
+                        "folder" => $card->folder,
+                        "status" => $card->status,
+                    ];
+                })
+            ]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(["error" => $e->getMessage()], 400);
+        }
+    }
+
     // READ
     public function read(Request $request)
     {
@@ -93,15 +148,19 @@ class CardController extends Controller
     {
         try {
             $request->validate([
-                "id" => "required|exists:cards,id",
+                "cards" => "required|array|max:9999",
             ]);
 
             $user = Auth::user();
 
-            $card = Card::where("creator", $user->username)->where("id", $request->id)->firstOrFail();
+            // delete all cards in the provided array
+            foreach ($request->cards as $card_id) {
+                $card = Card::where("creator", $user->username)->where("id", $card_id)->first();
+                if ($card)
+                    $card->delete();
+            }
 
-            $card->delete();
-
+            // return success message
             return response()->json(["message" => "Card deleted successfully"]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(["error" => $e->getMessage()], 400);
@@ -136,19 +195,51 @@ class CardController extends Controller
     {
         try {
             $request->validate([
-                "status" => "required|in:-1,0,1",
-                "id" => "required|exists:cards,id",
+                "status" => "required|in:0,1,2",
+                "cards" => "required|array|max:9999",
             ]);
 
             $user = Auth::user();
 
-            $card = Card::where("creator", $user->username)->where("id", $request->id)->firstOrFail();
+            // update all cards in the provided array
+            foreach ($request->cards as $card_id) {
+                $card = Card::where("creator", $user->username)->where("id", $card_id)->first();
 
-            $card->status = $request->status;
-            $card->reviewed_at = now();
-            $card->save();
+                if ($card)
+                    $card->update(["status" => $request->status]);
+            }
 
-            return response()->json(["message" => "Card status updated successfully"]);
+            // return success message
+            return response()->json(["message" => "Card statuses updated successfully", "cards" => $request->cards]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(["error" => $e->getMessage()], 400);
+        }
+    }
+
+    // MOVE //
+    public function move(Request $request)
+    {
+        try {
+            $request->validate([
+                "cards" => "required|array|max:9999",
+                "folder" => "required|exists:folders,id",
+            ]);
+
+            $user = Auth::user();
+
+            $folder = Folder::where("creator", $user->username)->where("id", $request->folder)->firstOrFail();
+
+            // move all cards in the provided array
+            foreach ($request->cards as $card_id) {
+                $card = Card::where("creator", $user->username)->where("id", $card_id)->first();
+                if ($card) {
+                    $card->update(["folder" => $folder->id]);
+                    $card->save();
+                }
+            }
+
+            // return success message
+            return response()->json(["message" => "Cards moved successfully"]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(["error" => $e->getMessage()], 400);
         }
