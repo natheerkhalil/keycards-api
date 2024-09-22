@@ -59,7 +59,7 @@ class AuthController extends Controller
                 'username' => 'required|string|max:18|min:3',
                 'email' => 'required|string|email|max:255',
                 'password' => 'required|string|min:8',
-                'token' => "required|string"
+               // 'token' => "required|string"
             ]);
 
             $unchanged_username = $request->input('username');
@@ -114,7 +114,7 @@ class AuthController extends Controller
             $request->validate([
                 'username' => 'required|string',
                 'password' => 'required|string',
-                'token' => "required|string"
+            // 'token' => "required|string"
             ]);
 
             // Set username or email to lowercase

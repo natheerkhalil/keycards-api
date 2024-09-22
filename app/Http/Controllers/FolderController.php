@@ -48,8 +48,9 @@ class FolderController extends Controller
     // CREATE
     public function create(Request $request)
     {
-        $themes = implode(",", $this->getThemes());
         try {
+            $themes = implode(",", $this->getThemes());
+            
             $request->validate([
                 "name" => "required|string|max:255|min:1",
                 "theme" => "required|string|in:$themes",
