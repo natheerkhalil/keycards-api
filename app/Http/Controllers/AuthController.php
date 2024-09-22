@@ -77,9 +77,9 @@ class AuthController extends Controller
         }
 
         // VERIFY CAPTCHA TOKEN
-        if (!$this->verifyCaptcha($request->input('token'))) {
+       /* if (!$this->verifyCaptcha($request->input('token'))) {
             return response()->json(['error' => 'Invalid captcha response ' . \Config::get('captcha.token') . "|||" . $request->token], 498);
-        }
+        }*/
         // END CAPTCHA VERIFICATION
 
 
@@ -117,9 +117,9 @@ class AuthController extends Controller
             $request->username = strtolower($request->input('username'));
 
             // VERIFY CAPTCHA TOKEN
-            if (!$this->verifyCaptcha($request->input('token'))) {
+            /*if (!$this->verifyCaptcha($request->input('token'))) {
                 return response()->json(['error' => 'Invalid captcha response'], 498);
-            }
+            }*/
             // END CAPTCHA VERIFICATION
 
             // VERIFY USER'S CREDENTIALS
