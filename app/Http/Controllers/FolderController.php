@@ -50,7 +50,7 @@ class FolderController extends Controller
     {
         try {
             $themes = implode(",", $this->getThemes());
-            
+
             $request->validate([
                 "name" => "required|string|max:255|min:1",
                 "theme" => "required|string|in:$themes",
@@ -67,14 +67,16 @@ class FolderController extends Controller
                 }
             }
 
-            $folder = new Folder();
-            $folder->name = $request->name;
-            $folder->creator = $user->username;
-            $folder->theme = $request->theme;
-            $folder->parent = $request->parent;
-            $folder->save();
+            Folder::create([
+                "name" => $request->name,
+                "theme" => $request->theme,
+                "parent" => $request->parent,
+                "creator" => $user->username,
+            ]);
 
-            return response()->json(["id" => $folder->id]);
+            $id = Folder::latest()->first()->id;
+
+            return response()->json(["id" => $id]);
         } catch (\Illuminate\Validation\ValidationException $e) {
             return response()->json(["error" => $e->getMessage()], 400);
         }
