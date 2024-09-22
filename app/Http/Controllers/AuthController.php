@@ -8,7 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
-use Laravel\Sanctum\HasApiTokens; 
+use Laravel\Sanctum\HasApiTokens;
 
 use App\Models\User;
 
@@ -53,54 +53,58 @@ class AuthController extends Controller
     // REGISTERING & LOGGING IN
     public function register(Request $request)
     {
-        // VALIDATE FORM FIELDS
-        $request->validate([
-            'username' => 'required|string|max:18|min:3',
-            'email' => 'required|string|email|max:255',
-            'password' => 'required|string|min:8',
-            'token' => "required|string"
-        ]);
+        try {
+            // VALIDATE FORM FIELDS
+            $request->validate([
+                'username' => 'required|string|max:18|min:3',
+                'email' => 'required|string|email|max:255',
+                'password' => 'required|string|min:8',
+                'token' => "required|string"
+            ]);
 
-        $unchanged_username = $request->input('username');
+            $unchanged_username = $request->input('username');
 
-        // Remove all spaces and non-alphanumeric characters
-        $request->username = preg_replace('/[^a-zA-Z0-9]+/', '', $request->input('username'));
+            // Remove all spaces and non-alphanumeric characters
+            $request->username = preg_replace('/[^a-zA-Z0-9]+/', '', $request->input('username'));
 
-        // Make username lowercase
-        $request->username = strtolower($request->username);
+            // Make username lowercase
+            $request->username = strtolower($request->username);
 
-        // Make email lowercase
-        $request->email = strtolower($request->email);
+            // Make email lowercase
+            $request->email = strtolower($request->email);
 
-        if ($request->username != $unchanged_username) {
-            return response()->json(['message' => 'Username contains invalid characters'], 400);
+            if ($request->username != $unchanged_username) {
+                return response()->json(['message' => 'Username contains invalid characters'], 400);
+            }
+
+            // VERIFY CAPTCHA TOKEN
+            /* if (!$this->verifyCaptcha($request->input('token'))) {
+                 return response()->json(['error' => 'Invalid captcha response ' . \Config::get('captcha.token') . "|||" . $request->token], 498);
+             }*/
+            // END CAPTCHA VERIFICATION
+
+
+            // CHECK IF USERNAME OR EMAIL ALREADY EXISTS
+            if (User::where('email', $request->email)->exists()) {
+                return response()->json(['message' => 'Email already exists'], 409);
+            }
+            if (User::where('username', $request->username)->exists()) {
+                return response()->json(['message' => 'Username already exists'], 409);
+            }
+
+            // CREATE NEW USER
+            $user = User::create([
+                'username' => $request->username,
+                'email' => $request->email,
+                'password' => Hash::make($request->password)
+            ]);
+
+            // RETURN TOKEN, USERNAME, AND EMAIL
+            $token = $user->createToken('auth_token')->plainTextToken;
+            return response()->json(['token' => $token, 'username' => $user->username, "email" => $user->email], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-
-        // VERIFY CAPTCHA TOKEN
-       /* if (!$this->verifyCaptcha($request->input('token'))) {
-            return response()->json(['error' => 'Invalid captcha response ' . \Config::get('captcha.token') . "|||" . $request->token], 498);
-        }*/
-        // END CAPTCHA VERIFICATION
-
-
-        // CHECK IF USERNAME OR EMAIL ALREADY EXISTS
-        if (User::where('email', $request->email)->exists()) {
-            return response()->json(['message' => 'Email already exists'], 409);
-        }
-        if (User::where('username', $request->username)->exists()) {
-            return response()->json(['message' => 'Username already exists'], 409);
-        }
-
-        // CREATE NEW USER
-        $user = User::create([
-            'username' => $request->username,
-            'email' => $request->email,
-            'password' => Hash::make($request->password)
-        ]);
-
-        // RETURN TOKEN, USERNAME, AND EMAIL
-        $token = $user->createToken('auth_token')->plainTextToken;
-        return response()->json(['token' => $token, 'username' => $user->username, "email" => $user->email], 200);
     }
 
     public function login(Request $request)
